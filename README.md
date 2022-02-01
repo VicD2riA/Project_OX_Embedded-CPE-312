@@ -15,13 +15,13 @@ Requirement
   -Apply knowledge from at least 3 labs
   
 Files in Github must exist
--Plan, Presentation, Code, Demo vidio
+- Plan, Presentation, Code, Demo vidio
  
 Extra point
--Use at least one component, which has not been taught in class
+- Use at least one component, which has not been taught in class
 
 ## @Author 
 - 1911310207 Pornwara Bunjarat
 - 1911310264 Wachira Tanpaisal
 - 1911310363 Nattawat Sakupiyanon  
-- 1911310389 
+- 1911310389 Harit Benjangkhaprasert
