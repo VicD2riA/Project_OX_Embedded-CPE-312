@@ -34,6 +34,7 @@
 #define Ab_4                (uint16_t)415
 #define A_4                 (uint16_t)440
 #define B_4                 (uint16_t)494
+#define C_5                 (uint16_t)523
 #define Db_5                (uint16_t)554
 #define D_5                 (uint16_t)587
 #define E_5                 (uint16_t)659
@@ -49,6 +50,7 @@
 #define D_6                 (uint16_t)1174
 #define Eb_6                (uint16_t)1244
 #define E_6                 (uint16_t)1318
+#define G_6                 (uint16_t)1568
 #define MUTE                (uint16_t)1
 
 /*for 10ms update event*/
@@ -64,7 +66,8 @@ void GPIO_LED_Config (void);
 void LCD_Blink(void);
 
 //Timer
-void TIMBase_Config(void);
+void TIM2_Base_Config(void);
+void TIM3_Base_Config(void);
 void TIM_OC_GPIO_Config(void);
 void TIM_BASE_Config(uint16_t ARR);
 void TIM_OC_Config(uint16_t note);
@@ -72,10 +75,17 @@ void TIM_OC_Config(uint16_t note);
 //Function Check win
 uint8_t CheckWin(uint8_t p1, uint8_t p2); 
 
-uint16_t sheetnote[] = {B_4,MUTE,A_4,MUTE,Ab_4,MUTE,A_4,B_4,MUTE,B_4,MUTE,B_4,B_4,
-                        Db_5,Db_5,MUTE,Db_5,Db_5,MUTE,B_4,MUTE,B_4,MUTE,B_4,B_4,
-                        Db_5,MUTE,Db_5,MUTE,Db_5,Db_5,B_4,B_4,MUTE};
+uint16_t sheetnoteWin[] = {B_4,MUTE,A_4,MUTE,Ab_4,MUTE,A_4,B_4,MUTE,B_4,MUTE,
+	                         B_4,B_4,Db_5,Db_5,MUTE,Db_5,Db_5,MUTE,B_4,MUTE,B_4,MUTE,B_4,B_4,
+                           Db_5,MUTE,Db_5,MUTE,Db_5,Db_5,B_4,B_4,MUTE};
+uint16_t cur_music_win = 0;
+													 
+uint16_t sheetnoteLose[] =  {C_6,MUTE,B_5,MUTE,B_5,MUTE,A_5,MUTE,A_5,MUTE,E_5,G_5,MUTE,MUTE,G_6,MUTE};
+uint16_t cur_music_lose = 0;
 
+uint16_t sheetnoteDraw[] =  {C_5,G_5,C_5,G_5};
+uint16_t cur_music_draw = 0;
+												
 uint16_t sheetnote_count[] = {D_4,D_5,G_5,E_6};
 uint16_t cur_count = 0;
 
@@ -85,6 +95,7 @@ uint8_t state_led;
 uint8_t  player1_rand = 0; 
 uint8_t  player2;
 uint16_t cnt = 0;
+uint16_t cnt2 = 0;
 
 int main()
 {
@@ -94,8 +105,8 @@ int main()
 	int num = 3;
 	
 	SystemClock_Config();
-	TIMBase_Config();
-	
+	TIM2_Base_Config();
+	TIM3_Base_Config();
 	//////////LCD//////////
 	LCD_GLASS_Init();	      
 	
@@ -131,28 +142,32 @@ int main()
 
 			if(num == 0){		
 				sprintf(disp_str, " Start");
-				LCD_GLASS_DisplayString((uint8_t*)disp_str);
+			  LCD_GLASS_DisplayString((uint8_t*)disp_str);
 				TIM_OC_Config(ARR_CALCULATE(sheetnote_count[cur_count]));
 				LCD_Blink();
 				
 				LL_TIM_DisableCounter(TIM2); //This code Stop! count here.
 				LL_TIM_SetAutoReload(TIM4, MUTE);
-			}			
-            else if (num == 1){
+				LL_TIM_SetCounter(TIM2, 0);
+			}
+      else if (num == 1){
+				TIM_OC_Config(ARR_CALCULATE(sheetnote_count[cur_count]));
+			}	
+      else if (num == 2){
 				TIM_OC_Config(ARR_CALCULATE(sheetnote_count[cur_count]));
 			}
-            else if (num == 2){
-				TIM_OC_Config(ARR_CALCULATE(sheetnote_count[cur_count]));
-			}			
+			
 	  }
-		
 			
     if(usr_button == 1 )
-   {
-			LL_GPIO_SetOutputPin(GPIOB, LL_GPIO_PIN_6);
+	  {
+			  LL_GPIO_SetOutputPin(GPIOB, LL_GPIO_PIN_6);
 		   	 
 			if(state_led == 0) {	
-				DAC->CR |= (1<<0);  //DAC channel 1 enable
+				//Play sound
+				TIM_OC_Config(ARR_CALCULATE(E_6)); 
+				
+				//Show LCD "PLAYER 1" is scrolltext
 				sprintf(disp_str, " PLAYER 1 ");
 				LCD_GLASS_ScrollSentence((uint8_t*) disp_str , 2 , 100);		
 				
@@ -163,13 +178,15 @@ int main()
 				usr_button = LL_GPIO_IsInputPinSet(GPIOA,LL_GPIO_PIN_0);	
 			}
 			
-			LL_GPIO_ResetOutputPin(GPIOB, LL_GPIO_PIN_6); // Close LED PIN6/PIN7
+			  LL_GPIO_ResetOutputPin(GPIOB, LL_GPIO_PIN_6); // Close LED PIN6/PIN7
 		    LL_GPIO_ResetOutputPin(GPIOB, LL_GPIO_PIN_7);
 			
-			sprintf(disp_str, "UR TURN");
-			LCD_GLASS_DisplayString((uint8_t*)disp_str);	
-			DAC->CR &= ~(1<<0);			
-	}
+			  sprintf(disp_str, "UR TURN");
+			  LCD_GLASS_DisplayString((uint8_t*)disp_str);
+			
+			  //Close sound 
+			  LL_TIM_SetAutoReload(TIM4, MUTE);		
+		 }
 		
      // 01 is scissor , 10 is rock , 00 is paper
 		 if( LL_GPIO_IsInputPinSet(GPIOA,LL_GPIO_PIN_11) == 0 || LL_GPIO_IsInputPinSet(GPIOA,LL_GPIO_PIN_12) == 0 )
@@ -177,23 +194,19 @@ int main()
 				LL_mDelay(300); 
 				if (LL_GPIO_IsInputPinSet(GPIOA,LL_GPIO_PIN_11) == 0 && LL_GPIO_IsInputPinSet(GPIOA,LL_GPIO_PIN_12) == 1)
 					{
-						player2 = 0; //scissor
-						DAC->CR |= (1<<0);				
+						player2 = 0; //scissor		
 					}	
 				else if(LL_GPIO_IsInputPinSet(GPIOA,LL_GPIO_PIN_11) == 1 && LL_GPIO_IsInputPinSet(GPIOA,LL_GPIO_PIN_12) == 0)
 					{
-						player2 = 1; //rock
-						DAC->CR |= (1<<0);				
+						player2 = 1; //rock			
 					}
 				else if(LL_GPIO_IsInputPinSet(GPIOA,LL_GPIO_PIN_11) == 0 && LL_GPIO_IsInputPinSet(GPIOA,LL_GPIO_PIN_12) == 0)
 					{
-						player2 = 2; //paper
-						DAC->CR |= (1<<0);				
+						player2 = 2; //paper			
 					}	
-				LL_mDelay(50);
-				DAC->CR &= ~(1<<0);	
-			
-				// 0 is scissor , 1 is rock , 2 is paper			
+				 LL_mDelay(100);
+				 						
+			 	// 0 is scissor , 1 is rock , 2 is paper
 				if(CheckWin(player1_rand,player2) == 0)     //Check DRAW
 					{	
 						LCD_GLASS_Clear();
@@ -202,7 +215,19 @@ int main()
 						
 						sprintf(disp_str, " DRAW");
 			      LCD_GLASS_DisplayString((uint8_t*)disp_str);	
-            LCD_Blink();						
+            LCD_Blink();
+
+						LL_TIM_ClearFlag_UPDATE(TIM3);
+						TIM_OC_Config(ARR_CALCULATE(sheetnoteDraw[cur_music_draw]));
+						while(cur_music_draw <= 3){
+							if(LL_TIM_IsActiveFlag_UPDATE(TIM3) == SET )
+							{
+									LL_TIM_ClearFlag_UPDATE(TIM3);
+									LL_TIM_SetAutoReload(TIM4, ARR_CALCULATE(sheetnoteDraw[++cur_music_draw])); //Change ARR of Timer PWM
+									LL_TIM_SetCounter(TIM3, 0);
+							}
+					  }
+						cur_music_draw = 0;
 					}
 				else if (CheckWin(player1_rand,player2) == 1) //Check LOSE
 					{
@@ -212,29 +237,55 @@ int main()
 						
 						sprintf(disp_str, " LOSE");
 			      LCD_GLASS_DisplayString((uint8_t*)disp_str);
+						
 						LCD_Blink();
-				
+						
+						LL_TIM_ClearFlag_UPDATE(TIM3);
+						TIM_OC_Config(ARR_CALCULATE(sheetnoteLose[cur_music_lose]));
+						
+						while(cur_music_lose <= 30){
+		        if(LL_TIM_IsActiveFlag_UPDATE(TIM3) == SET)
+		           {
+									LL_TIM_ClearFlag_UPDATE(TIM3);
+									LL_TIM_SetAutoReload(TIM4, ARR_CALCULATE(sheetnoteLose[++cur_music_lose])); //Change ARR of Timer PWM
+									LL_TIM_SetCounter(TIM3, 0);
+		           }
+					  }
+						cur_music_lose = 0;
+
 					}					
 				else if(CheckWin(player1_rand,player2) == 2)   //Check WIN
-					{				
+				{				
 						LCD_GLASS_Clear();				
 						LL_GPIO_SetOutputPin(GPIOB, LL_GPIO_PIN_6); // Open LED PIN6/PIN7
 						LL_GPIO_SetOutputPin(GPIOB, LL_GPIO_PIN_7); 
 
 						sprintf(disp_str, " *WIN*");
 			      LCD_GLASS_DisplayString((uint8_t*)disp_str);
-						
-						DAC->CR |= (1<<0);	//If win sound is up
-						LCD_Blink();
-						DAC->CR &= ~(1<<0);	
-					}		
+					
+            LCD_Blink();
+					
+					  LL_TIM_ClearFlag_UPDATE(TIM3);
+						TIM_OC_Config(ARR_CALCULATE(sheetnoteWin[cur_music_win]));
+					
+						while(cur_music_win <= 33){
+		        if(LL_TIM_IsActiveFlag_UPDATE(TIM3) == SET)
+		           {
+									LL_TIM_ClearFlag_UPDATE(TIM3);
+									LL_TIM_SetAutoReload(TIM4, ARR_CALCULATE(sheetnoteWin[++cur_music_win])); //Change ARR of Timer PWM
+									LL_TIM_SetCounter(TIM3, 0);
+								  
+		           }
+					  }
+						cur_music_win = 0;
+				}				
 		}		
   }
 }
 void LCD_Blink(void)
 {
 	LCD_GLASS_BlinkConfig(LCD_BLINKMODE_ALLSEG_ALLCOM, LCD_BLINKFREQUENCY_DIV512);
-	LL_mDelay(1200);
+	LL_mDelay(500);
 	LCD_GLASS_BlinkConfig(LCD_BLINKMODE_OFF, LCD_BLINKFREQUENCY_DIV512);
 }
 
@@ -281,7 +332,7 @@ void GPIO_LED_Config (void)
 	LL_GPIO_Init(GPIOB, &GPIO_InitStruct);	
 }
 
-void TIMBase_Config(void)
+void TIM2_Base_Config(void)
 {
 	LL_TIM_InitTypeDef timbase_initstructure;
 	
@@ -294,6 +345,22 @@ void TIMBase_Config(void)
 	
 	LL_TIM_Init(TIM2 , &timbase_initstructure);
 	LL_TIM_EnableCounter(TIM2);  //This code Open count here
+	
+}
+
+void TIM3_Base_Config(void)
+{
+	LL_TIM_InitTypeDef timbase_initstructure;
+	
+	LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_TIM3);
+	
+	timbase_initstructure.ClockDivision = LL_TIM_CLOCKDIVISION_DIV1;
+	timbase_initstructure.CounterMode = LL_TIM_COUNTERMODE_UP;
+	timbase_initstructure.Autoreload = 150-1;
+	timbase_initstructure.Prescaler = 32000-1;
+	
+	LL_TIM_Init(TIM3 , &timbase_initstructure);
+	LL_TIM_EnableCounter(TIM3);  //This code Open count here
 	
 }
 
@@ -341,7 +408,6 @@ void TIM_OC_Config(uint16_t note)
 	tim_oc_initstructure.OCPolarity = LL_TIM_OCPOLARITY_HIGH;
   tim_oc_initstructure.CompareValue = LL_TIM_GetAutoReload(TIM4) / 2; //50% duty
 	LL_TIM_OC_Init(TIM4, LL_TIM_CHANNEL_CH1, &tim_oc_initstructure);
-	
 	
 	/*Start Output Compare in PWM Mode*/
 	LL_TIM_CC_EnableChannel(TIM4, LL_TIM_CHANNEL_CH1);
