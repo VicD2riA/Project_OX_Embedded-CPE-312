@@ -75,15 +75,16 @@ void TIM_OC_Config(uint16_t note);
 //Function Check win
 uint8_t CheckWin(uint8_t p1, uint8_t p2); 
 
+//Sheet note 
 uint16_t sheetnoteWin[] = {B_4,MUTE,A_4,MUTE,Ab_4,MUTE,A_4,B_4,MUTE,B_4,MUTE,
 	                         B_4,B_4,Db_5,Db_5,MUTE,Db_5,Db_5,MUTE,B_4,MUTE,B_4,MUTE,B_4,B_4,
                            Db_5,MUTE,Db_5,MUTE,Db_5,Db_5,B_4,B_4,MUTE};
 uint16_t cur_music_win = 0;
 													 
-uint16_t sheetnoteLose[] =  {C_6,MUTE,B_5,MUTE,B_5,MUTE,A_5,MUTE,A_5,MUTE,E_5,G_5,MUTE,MUTE,G_6,MUTE};
+uint16_t sheetnoteLose[] = {C_6,MUTE,B_5,MUTE,B_5,MUTE,A_5,MUTE,A_5,MUTE,E_5,G_5,MUTE,MUTE,G_6,MUTE};
 uint16_t cur_music_lose = 0;
 
-uint16_t sheetnoteDraw[] =  {C_5,G_5,C_5,G_5};
+uint16_t sheetnoteDraw[] = {C_5,G_5,C_5,G_5};
 uint16_t cur_music_draw = 0;
 												
 uint16_t sheetnote_count[] = {D_4,D_5,G_5,E_6};
@@ -94,8 +95,6 @@ uint8_t state_led;
 
 uint8_t  player1_rand = 0; 
 uint8_t  player2;
-uint16_t cnt = 0;
-uint16_t cnt2 = 0;
 
 int main()
 {
@@ -107,6 +106,7 @@ int main()
 	SystemClock_Config();
 	TIM2_Base_Config();
 	TIM3_Base_Config();
+
 	//////////LCD//////////
 	LCD_GLASS_Init();	      
 	
@@ -127,7 +127,7 @@ int main()
 	{	
 		srand(i++); //for random 
 		state_led =  LL_GPIO_IsOutputPinSet(GPIOB, LL_GPIO_PIN_6);
-		usr_button = LL_GPIO_IsInputPinSet (GPIOA,LL_GPIO_PIN_0);
+		usr_button = LL_GPIO_IsInputPinSet (GPIOA, LL_GPIO_PIN_0);
 		
 		if(LL_TIM_IsActiveFlag_UPDATE(TIM2) == SET && num != 0)
 		{
@@ -140,9 +140,9 @@ int main()
 			LCD_GLASS_DisplayString((uint8_t*)disp_str);
 			
 
-			if(num == 0){		
+            if(num == 0){		
 				sprintf(disp_str, " Start");
-			  LCD_GLASS_DisplayString((uint8_t*)disp_str);
+				LCD_GLASS_DisplayString((uint8_t*)disp_str);
 				TIM_OC_Config(ARR_CALCULATE(sheetnote_count[cur_count]));
 				LCD_Blink();
 				
@@ -150,18 +150,17 @@ int main()
 				LL_TIM_SetAutoReload(TIM4, MUTE);
 				LL_TIM_SetCounter(TIM2, 0);
 			}
-      else if (num == 1){
+            else if (num == 1){
 				TIM_OC_Config(ARR_CALCULATE(sheetnote_count[cur_count]));
 			}	
-      else if (num == 2){
+            else if (num == 2){
 				TIM_OC_Config(ARR_CALCULATE(sheetnote_count[cur_count]));
-			}
+			}			
+	    }
 			
-	  }
-			
-    if(usr_button == 1 )
-	  {
-			  LL_GPIO_SetOutputPin(GPIOB, LL_GPIO_PIN_6);
+        if(usr_button == 1 )
+	    {
+			LL_GPIO_SetOutputPin(GPIOB, LL_GPIO_PIN_7);
 		   	 
 			if(state_led == 0) {	
 				//Play sound
@@ -178,109 +177,108 @@ int main()
 				usr_button = LL_GPIO_IsInputPinSet(GPIOA,LL_GPIO_PIN_0);	
 			}
 			
-			  LL_GPIO_ResetOutputPin(GPIOB, LL_GPIO_PIN_6); // Close LED PIN6/PIN7
+			//Close LED PIN7
 		    LL_GPIO_ResetOutputPin(GPIOB, LL_GPIO_PIN_7);
 			
-			  sprintf(disp_str, "UR TURN");
-			  LCD_GLASS_DisplayString((uint8_t*)disp_str);
+			sprintf(disp_str, "UR TURN");
+			LCD_GLASS_DisplayString((uint8_t*)disp_str);
 			
-			  //Close sound 
-			  LL_TIM_SetAutoReload(TIM4, MUTE);		
-		 }
+			//Close sound 
+			LL_TIM_SetAutoReload(TIM4, MUTE);		
+		}
 		
-     // 01 is scissor , 10 is rock , 00 is paper
-		 if( LL_GPIO_IsInputPinSet(GPIOA,LL_GPIO_PIN_11) == 0 || LL_GPIO_IsInputPinSet(GPIOA,LL_GPIO_PIN_12) == 0 )
-		 {
-				LL_mDelay(300); 
-				if (LL_GPIO_IsInputPinSet(GPIOA,LL_GPIO_PIN_11) == 0 && LL_GPIO_IsInputPinSet(GPIOA,LL_GPIO_PIN_12) == 1)
-					{
-						player2 = 0; //scissor		
-					}	
-				else if(LL_GPIO_IsInputPinSet(GPIOA,LL_GPIO_PIN_11) == 1 && LL_GPIO_IsInputPinSet(GPIOA,LL_GPIO_PIN_12) == 0)
-					{
-						player2 = 1; //rock			
-					}
-				else if(LL_GPIO_IsInputPinSet(GPIOA,LL_GPIO_PIN_11) == 0 && LL_GPIO_IsInputPinSet(GPIOA,LL_GPIO_PIN_12) == 0)
-					{
-						player2 = 2; //paper			
-					}	
-				 LL_mDelay(100);
+         // 01 is scissor , 10 is rock , 00 is paper
+		if( LL_GPIO_IsInputPinSet(GPIOA,LL_GPIO_PIN_11) == 0 || LL_GPIO_IsInputPinSet(GPIOA,LL_GPIO_PIN_12) == 0 )
+		{
+			LL_mDelay(300); 
+			if (LL_GPIO_IsInputPinSet(GPIOA,LL_GPIO_PIN_11) == 0 && LL_GPIO_IsInputPinSet(GPIOA,LL_GPIO_PIN_12) == 1)
+			{
+				player2 = 0; //scissor		
+			}	
+			else if(LL_GPIO_IsInputPinSet(GPIOA,LL_GPIO_PIN_11) == 1 && LL_GPIO_IsInputPinSet(GPIOA,LL_GPIO_PIN_12) == 0)
+			{
+				player2 = 1; //rock			
+			}
+		    else if(LL_GPIO_IsInputPinSet(GPIOA,LL_GPIO_PIN_11) == 0 && LL_GPIO_IsInputPinSet(GPIOA,LL_GPIO_PIN_12) == 0)
+			{
+				player2 = 2; //paper			
+			}
+
+			LL_mDelay(100);
 				 						
-			 	// 0 is scissor , 1 is rock , 2 is paper
-				if(CheckWin(player1_rand,player2) == 0)     //Check DRAW
-					{	
-						LCD_GLASS_Clear();
-						LL_GPIO_ResetOutputPin(GPIOB, LL_GPIO_PIN_6); // Close LED PIN6/PIN7
-						LL_GPIO_ResetOutputPin(GPIOB, LL_GPIO_PIN_7);
+		    // 0 is scissor , 1 is rock , 2 is paper
+			if(CheckWin(player1_rand,player2) == 0)     //Check DRAW
+			{	
+				LCD_GLASS_Clear();
+				LL_GPIO_ResetOutputPin(GPIOB, LL_GPIO_PIN_6); // Close LED PIN6/PIN7
+				LL_GPIO_ResetOutputPin(GPIOB, LL_GPIO_PIN_7);
 						
-						sprintf(disp_str, " DRAW");
-			      LCD_GLASS_DisplayString((uint8_t*)disp_str);	
-            LCD_Blink();
+				sprintf(disp_str, " DRAW");
+			    LCD_GLASS_DisplayString((uint8_t*)disp_str);	
+                LCD_Blink();
 
-						LL_TIM_ClearFlag_UPDATE(TIM3);
-						TIM_OC_Config(ARR_CALCULATE(sheetnoteDraw[cur_music_draw]));
-						while(cur_music_draw <= 3){
-							if(LL_TIM_IsActiveFlag_UPDATE(TIM3) == SET )
-							{
-									LL_TIM_ClearFlag_UPDATE(TIM3);
-									LL_TIM_SetAutoReload(TIM4, ARR_CALCULATE(sheetnoteDraw[++cur_music_draw])); //Change ARR of Timer PWM
-									LL_TIM_SetCounter(TIM3, 0);
-							}
-					  }
-						cur_music_draw = 0;
-					}
-				else if (CheckWin(player1_rand,player2) == 1) //Check LOSE
+				LL_TIM_ClearFlag_UPDATE(TIM3);
+			    TIM_OC_Config(ARR_CALCULATE(sheetnoteDraw[cur_music_draw]));
+
+				while(cur_music_draw <= 3){
+					if(LL_TIM_IsActiveFlag_UPDATE(TIM3) == SET )
 					{
-						LCD_GLASS_Clear();
-						LL_GPIO_ResetOutputPin(GPIOB, LL_GPIO_PIN_6); // Close LED PIN6/PIN7
-						LL_GPIO_ResetOutputPin(GPIOB, LL_GPIO_PIN_7);
+					    LL_TIM_ClearFlag_UPDATE(TIM3);
+						LL_TIM_SetAutoReload(TIM4, ARR_CALCULATE(sheetnoteDraw[++cur_music_draw])); //Change ARR of Timer PWM
+						LL_TIM_SetCounter(TIM3, 0);
+					}
+				}
+						cur_music_draw = 0;
+			}
+			else if (CheckWin(player1_rand,player2) == 1) //Check LOSE
+			{
+					LCD_GLASS_Clear();
+					// Close LED PIN7
+					LL_GPIO_ResetOutputPin(GPIOB, LL_GPIO_PIN_7);
 						
-						sprintf(disp_str, " LOSE");
-			      LCD_GLASS_DisplayString((uint8_t*)disp_str);
+					sprintf(disp_str, " LOSE");
+			        LCD_GLASS_DisplayString((uint8_t*)disp_str);
 						
-						LCD_Blink();
+					LCD_Blink();
 						
+					LL_TIM_ClearFlag_UPDATE(TIM3);
+					TIM_OC_Config(ARR_CALCULATE(sheetnoteLose[cur_music_lose]));
+						
+					while(cur_music_lose <= 30){
+		                if(LL_TIM_IsActiveFlag_UPDATE(TIM3) == SET)
+		                {
+						    LL_TIM_ClearFlag_UPDATE(TIM3);
+						    LL_TIM_SetAutoReload(TIM4, ARR_CALCULATE(sheetnoteLose[++cur_music_lose])); //Change ARR of Timer PWM
+							LL_TIM_SetCounter(TIM3, 0);
+		                }
+					}
+					cur_music_lose = 0;
+				}					
+			else if(CheckWin(player1_rand,player2) == 2)   //Check WIN
+			{				
+				LCD_GLASS_Clear();				
+				LL_GPIO_SetOutputPin(GPIOB, LL_GPIO_PIN_7); 
+
+				sprintf(disp_str, " *WIN*");
+			    LCD_GLASS_DisplayString((uint8_t*)disp_str);
+					
+                LCD_Blink();
+					
+				LL_TIM_ClearFlag_UPDATE(TIM3);
+				TIM_OC_Config(ARR_CALCULATE(sheetnoteWin[cur_music_win]));
+					
+				while(cur_music_win <= 33){
+		            if(LL_TIM_IsActiveFlag_UPDATE(TIM3) == SET)
+		            {
 						LL_TIM_ClearFlag_UPDATE(TIM3);
-						TIM_OC_Config(ARR_CALCULATE(sheetnoteLose[cur_music_lose]));
-						
-						while(cur_music_lose <= 30){
-		        if(LL_TIM_IsActiveFlag_UPDATE(TIM3) == SET)
-		           {
-									LL_TIM_ClearFlag_UPDATE(TIM3);
-									LL_TIM_SetAutoReload(TIM4, ARR_CALCULATE(sheetnoteLose[++cur_music_lose])); //Change ARR of Timer PWM
-									LL_TIM_SetCounter(TIM3, 0);
-		           }
-					  }
-						cur_music_lose = 0;
-
-					}					
-				else if(CheckWin(player1_rand,player2) == 2)   //Check WIN
-				{				
-						LCD_GLASS_Clear();				
-						LL_GPIO_SetOutputPin(GPIOB, LL_GPIO_PIN_6); // Open LED PIN6/PIN7
-						LL_GPIO_SetOutputPin(GPIOB, LL_GPIO_PIN_7); 
-
-						sprintf(disp_str, " *WIN*");
-			      LCD_GLASS_DisplayString((uint8_t*)disp_str);
-					
-            LCD_Blink();
-					
-					  LL_TIM_ClearFlag_UPDATE(TIM3);
-						TIM_OC_Config(ARR_CALCULATE(sheetnoteWin[cur_music_win]));
-					
-						while(cur_music_win <= 33){
-		        if(LL_TIM_IsActiveFlag_UPDATE(TIM3) == SET)
-		           {
-									LL_TIM_ClearFlag_UPDATE(TIM3);
-									LL_TIM_SetAutoReload(TIM4, ARR_CALCULATE(sheetnoteWin[++cur_music_win])); //Change ARR of Timer PWM
-									LL_TIM_SetCounter(TIM3, 0);
-								  
-		           }
-					  }
-						cur_music_win = 0;
-				}				
-		}		
-  }
+						LL_TIM_SetAutoReload(TIM4, ARR_CALCULATE(sheetnoteWin[++cur_music_win])); //Change ARR of Timer PWM
+						LL_TIM_SetCounter(TIM3, 0);								  
+		            }
+				}
+				cur_music_win = 0;
+			}				
+	    }		
+    }
 }
 void LCD_Blink(void)
 {
@@ -326,7 +324,7 @@ void GPIO_LED_Config (void)
 	GPIO_InitStruct.Pull  = LL_GPIO_PULL_NO;
 	GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_HIGH;	
 	
-	GPIO_InitStruct.Pin = LL_GPIO_PIN_6 | LL_GPIO_PIN_7;
+	GPIO_InitStruct.Pin =  LL_GPIO_PIN_7;
 	
 	//write configuration to GPIOB registor
 	LL_GPIO_Init(GPIOB, &GPIO_InitStruct);	
