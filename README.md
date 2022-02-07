@@ -4,7 +4,7 @@ Submit all files: Tuesday, 8 Feb 2022
 Plan update 
 - Update project plan # 1 : 12 JAN 2022
 - Update project plan # 2 : 24 JAN 2022
-- Update project plan # 3 : 4 FEB 2022
+- Update project plan # 3 : 04 FEB 2022
 
 File project main: "S1-G07_Rock–paper–scissors_main_.c"
 
@@ -15,7 +15,7 @@ Requirement
   -Apply knowledge from at least 3 labs
   
 Files in Github must exist
-- Plan, Presentation, Code, Demo vidio
+- Plan, Presentation, Code, Demo video
  
 Extra point
 - Use at least one component, which has not been taught in class
