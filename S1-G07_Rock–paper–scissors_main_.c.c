@@ -210,7 +210,8 @@ int main()
 			if(CheckWin(player1_rand,player2) == 0)     //Check DRAW
 			{	
 				LCD_GLASS_Clear();
-				LL_GPIO_ResetOutputPin(GPIOB, LL_GPIO_PIN_6); // Close LED PIN6/PIN7
+				
+				// Close LED PIN7
 				LL_GPIO_ResetOutputPin(GPIOB, LL_GPIO_PIN_7);
 						
 				sprintf(disp_str, " DRAW");
